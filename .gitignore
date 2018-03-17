@@ -1,2 +1,5 @@
+# Windows default autosave extension
+*.asv
 
+# Data folder
 CASIA_data/*
