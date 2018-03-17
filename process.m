@@ -1,6 +1,6 @@
 clear;clc;clf;
 
-image = imread('D:\学习文件\全国信息安全比赛\DGD_database\SAIVT-DGD-depthraw-0009\DGD\depth_raw\sub0001\nw01\0038.png');
+image = imread('.\DGD_database\SAIVT-DGD-depthraw-0009\DGD\depth_raw\sub0001\nw01\0038.png');
 
 
 p=depthToCloud(image);
