@@ -11,8 +11,10 @@ function [pcloud, distance] = depthToCloud(depth, topleft)
 % distance - euclidean distance from the sensor to each point
 %
 
+depth = depth - 400;
+
 if nargin < 2
-    topleft = [1 1];
+    topleft = [0 0];
 end
 
 depth= double(depth);
@@ -21,7 +23,7 @@ depth(depth == 0) = nan;
 % RGB-D camera constants
 center = [320 240];
 [imh, imw] = size(depth);
-constant = 570.3;
+constant = 5700.3;
 MM_PER_M = 1000;
 
 % convert depth image to 3d point clouds
