@@ -3,6 +3,7 @@
 
 # Data folder
 CASIA_data/*
+DGD_database/*
 
 # temp script
 alan_try.m
