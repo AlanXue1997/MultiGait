@@ -1,7 +1,7 @@
 clear,clc;
 
 total_num = 75;
-seg_rank = 40;
+seg_rank = 43;
 path = '.\\CASIA_data\\DatasetA\\gaitdb\\fyc\\00_1\\fyc-00_1-0%02d.png';
 
 % 
