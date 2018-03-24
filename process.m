@@ -1,6 +1,6 @@
 clear;clc;clf;
 
-image = imread('.\DGD_database\SAIVT-DGD-depthraw-0009\DGD\depth_raw\sub0001\nw01\0045.png');
+image = imread('.\DGD_database\SAIVT-DGD-depthraw-0009\DGD\depth_raw\sub0001\nw01\0040.png');
 
 p=depth2cloud4dgd( image );
 
@@ -11,93 +11,59 @@ z=p(:,:,3);
 a = [97,184];
 b = [101,284];
 r = b-a;
-q0 = ( (x-a(1))*r(2)-(z-a(2))*r(1) )<0;
 
+%segment
+q0 = ( (x-a(1))*r(2)-(z-a(2))*r(1) )<0;
 q = find((x>-70)+q0+(y>-15)+(y<60)+(z<600)+(z>0)==6);
 
+%convert to vector
 x = x(q);
 y = y(q);
 z = z(q);
 
+%translation
 avgx = mean(x);
 avgy = mean(y);
 avgz = mean(z);
-
 x = (x - avgx);
 y = (y - avgy);
 z = (z - avgz);
 
 figure(3);
 scatter3(x,y,z,'.');
+axis equal
 
 height = 170;
-weight = 70;
+width = 70;%It may be width rather than weight, which is an unit to measure mass
 
 i = 1;
 j = 1;
 lenx = length(x);
 leny = length(y);
 
-while(i<=lenx)
-    if(abs(x(i))>height/2)
-        z(i)=[];
-        y(i)=[];
-        x(i)=[];
-        i = i-1;
-    end
-    i = i+1;
-    lenx = length(x);
-end
+%delete exceeding points
+p = find((abs(x)<height/2) .* (abs(z)<width/2)==1);
+x = x(p);
+y = y(p);
+z = z(p);
 
-while(j<=leny)
-    if(abs(z(j))>weight/2)
-        z(j)=[];
-        y(j)=[];
-        x(j)=[];
-        j = j-1;
-    end
-    j = j+1;
-    leny = length(y);
-end
+%convert coordinates to integer
+x = int16((x+0.5*height)/height*800+1);
+z = int16((z+0.5*width)/width*600+1);
 
+%convert to an 0-1 image
 X = zeros(800,600);
-
-for i = 1 : length(x)
-    
-    if(int16((z(i)+0.5*weight)/weight*600)==0 && int16((x(i)+0.5*height)/height*800)==0)
-        
-        X( int16((x(i)+0.5*height)/height*800)+1,int16((z(i)+0.5*weight)/weight*600)+1 )=1;
-        
-    elseif (int16((x(i)+0.5*height)/height*800)==0)
-        
-        X( int16((x(i)+0.5*height)/height*800)+1,int16((z(i)+0.5*weight)/weight*600) )=1;
-        
-    elseif(int16((z(i)+0.5*weight)/weight*600)==0)
-        
-        X( int16((x(i)+0.5*height)/height*800),int16((z(i)+0.5*weight)/weight*600)+1 )=1;
-        
-    else
-        
-        X( int16((x(i)+0.5*height)/height*800),int16((z(i)+0.5*weight)/weight*600) )=1;
-        
-    end
+for i=1:length(x)
+    X(x(i),z(i))=1;
 end
-
 figure(1);
 imshow(X);
 
-for i=1:size(X,1)
-    for j=1:size(X,2)
-        if X(i,j)==1
-            for k=j:600
-                % plot(i,k,'.');
-                X(i,k)=1;
-            end
-            break;
-        end
-    end
+%Fill back
+for i=2:600
+    X(:,i) = X(:,i-1)+X(:,i)>0;
 end
-
+X=1-X;
 figure(2);
 imshow(X);
 
@@ -122,7 +88,7 @@ imshow(X);
 % z = (z - avgz);
 % 
 % height = 0.460;
-% weight = 0.026;
+% width = 0.026;
 % 
 % i = 1;
 % j = 1;
@@ -141,7 +107,7 @@ imshow(X);
 % end
 % 
 % while(j<=leny)
-%     if(abs(z(j))>weight/2)
+%     if(abs(z(j))>width/2)
 %         z(j)=[];
 %         y(j)=[];
 %         x(j)=[];
@@ -155,21 +121,21 @@ imshow(X);
 % 
 % for i = 1 : length(x)
 %     
-%     if(int16((z(i)+0.5*weight)/weight*600)==0 && int16((y(i)+0.5*height)/height*800)==0)
+%     if(int16((z(i)+0.5*width)/width*600)==0 && int16((y(i)+0.5*height)/height*800)==0)
 %         
-%         X( int16((y(i)+0.5*height)/height*800)+1,int16((z(i)+0.5*weight)/weight*600)+1 )=1;
+%         X( int16((y(i)+0.5*height)/height*800)+1,int16((z(i)+0.5*width)/width*600)+1 )=1;
 %         
 %     elseif (int16((y(i)+0.5*height)/height*800)==0)
 %         
-%         X( int16((y(i)+0.5*height)/height*800)+1,int16((z(i)+0.5*weight)/weight*600) )=1;
+%         X( int16((y(i)+0.5*height)/height*800)+1,int16((z(i)+0.5*width)/width*600) )=1;
 %         
-%     elseif(int16((z(i)+0.5*weight)/weight*600)==0)
+%     elseif(int16((z(i)+0.5*width)/width*600)==0)
 %         
-%         X( int16((y(i)+0.5*height)/height*800),int16((z(i)+0.5*weight)/weight*600)+1 )=1;
+%         X( int16((y(i)+0.5*height)/height*800),int16((z(i)+0.5*width)/width*600)+1 )=1;
 %         
 %     else
 %         
-%         X( int16((y(i)+0.5*height)/height*800),int16((z(i)+0.5*weight)/weight*600) )=1;
+%         X( int16((y(i)+0.5*height)/height*800),int16((z(i)+0.5*width)/width*600) )=1;
 %         
 %     end
 % end
