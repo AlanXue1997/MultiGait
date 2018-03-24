@@ -1,6 +1,14 @@
 clear;clc;clf;
 
-image = imread('.\DGD_database\SAIVT-DGD-depthraw-0009\DGD\depth_raw\sub0001\nw01\0040.png');
+ZoneSize = [70,170];
+ImageSize = [350,800];
+margin = 10;%percentage
+
+if ~((ZoneSize(1)/ImageSize(1))==(ZoneSize(2)/ImageSize(2)))
+    warning('Aspect ratio of ZoneSize[%d,%d] and ImageSize[%d,%d] is not consistent, part of Image may be wasted!', ZoneSize,ImageSize);
+end
+
+image = imread('.\DGD_database\SAIVT-DGD-depthraw-0009\DGD\depth_raw\sub0001\nw01\0045.png');
 
 p=depth2cloud4dgd( image );
 
@@ -29,12 +37,12 @@ x = (x - avgx);
 y = (y - avgy);
 z = (z - avgz);
 
-figure(3);
-scatter3(x,y,z,'.');
-axis equal
+% figure(3);
+% scatter3(x,y,z,'.');
+% axis equal
 
-height = 170;
-width = 70;%It may be width rather than weight, which is an unit to measure mass
+height = ZoneSize(2);
+width = ZoneSize(1);%It may be width rather than weight, which is an unit to measure mass
 
 i = 1;
 j = 1;
@@ -47,187 +55,32 @@ x = x(p);
 y = y(p);
 z = z(p);
 
+if ZoneSize(1)/ImageSize(1)>ZoneSize(2)/ImageSize(2)
+    Isize = [ImageSize(1), round(ImageSize(1)/ZoneSize(1)*ZoneSize(2))];
+else
+    Isize = [round(ImageSize(2)/ZoneSize(2)*ZoneSize(1)), ImageSize(2)];
+end
+
+%preserve for margin aera
+Isize = round(Isize*(100-margin)/100);
+
 %convert coordinates to integer
-x = int16((x+0.5*height)/height*800+1);
-z = int16((z+0.5*width)/width*600+1);
+x = int16((x+0.5*height)/height*Isize(2)+1)+(ImageSize(2)-Isize(2))/2;
+z = int16((z+0.5*width)/width*Isize(1)+1)+(ImageSize(1)-Isize(1))/2;
 
 %convert to an 0-1 image
-X = zeros(800,600);
+X = zeros(ImageSize(2),ImageSize(1));
 for i=1:length(x)
     X(x(i),z(i))=1;
 end
 figure(1);
+subplot(1,2,1);
 imshow(X);
 
 %Fill back
-for i=2:600
+for i=2:ImageSize(1)
     X(:,i) = X(:,i-1)+X(:,i)>0;
 end
 X=1-X;
-figure(2);
+subplot(1,2,2);
 imshow(X);
-
-% a = [0.6,0.885];888888888888888888888888888888888888888888888888888888888
-% b = [0.385,0.992];
-% %b = [0.6,0.89];
-% r = b-a;
-% q0 = ((y-a(1))*r(2)-(z-a(2))*r(1))<0;
-% 
-% q = find((z>0.6)+(z<1.03)+(y>-0.1)+(x>-0.2)+(x<0.06)+q0==6);
-% 
-% x = x(q);
-% y = y(q);
-% z = z(q);
-% 
-% avgx = mean(x);
-% avgy = mean(y);
-% avgz = mean(z);
-% 
-% x = (x - avgx);
-% y = (y - avgy);
-% z = (z - avgz);
-% 
-% height = 0.460;
-% width = 0.026;
-% 
-% i = 1;
-% j = 1;
-% lenx = length(x);
-% leny = length(y);
-% 
-% while(i<=lenx)
-%     if(abs(y(i))>height/2)
-%         z(i)=[];
-%         y(i)=[];
-%         x(i)=[];
-%         i = i-1;
-%     end
-%     i = i+1;
-%     lenx = length(x);
-% end
-% 
-% while(j<=leny)
-%     if(abs(z(j))>width/2)
-%         z(j)=[];
-%         y(j)=[];
-%         x(j)=[];
-%         j = j-1;
-%     end
-%     j = j+1;
-%     leny = length(y);
-% end
-% 
-% X = zeros(800,600);
-% 
-% for i = 1 : length(x)
-%     
-%     if(int16((z(i)+0.5*width)/width*600)==0 && int16((y(i)+0.5*height)/height*800)==0)
-%         
-%         X( int16((y(i)+0.5*height)/height*800)+1,int16((z(i)+0.5*width)/width*600)+1 )=1;
-%         
-%     elseif (int16((y(i)+0.5*height)/height*800)==0)
-%         
-%         X( int16((y(i)+0.5*height)/height*800)+1,int16((z(i)+0.5*width)/width*600) )=1;
-%         
-%     elseif(int16((z(i)+0.5*width)/width*600)==0)
-%         
-%         X( int16((y(i)+0.5*height)/height*800),int16((z(i)+0.5*width)/width*600)+1 )=1;
-%         
-%     else
-%         
-%         X( int16((y(i)+0.5*height)/height*800),int16((z(i)+0.5*width)/width*600) )=1;
-%         
-%     end
-% end
-% 
-% figure(1);
-% imshow(1-X);
-% 
-% for i=1:size(X,1)
-%     for j=1:size(X,2)
-%         if X(i,j)==1
-%             for k=j:600
-%                 % plot(i,k,'.');
-%                 X(i,k)=1;
-%             end
-%             break;
-%         end
-%     end
-% end
-% 
-% figure(2);
-% imshow(1-X);777777777777777777777777777777777777777777777777777777777777777777
-
-% i = 1;
-% j = 1;
-% lenx = length(x);
-% leny = length(y);
-% 
-% while(i<=lenx)
-%     temp_z = z(i);
-%     while(j<=leny)
-%         if(y(i)==y(j) && i~=j)
-%             disp(j);
-%             if(z(j)>temp_z)
-%                 z(i) = z(j);
-%             end
-%             x(j)=[];
-%             y(j)=[];
-%             z(j)=[];
-%             j = j-1;
-%         end
-%         j = j+1;
-%         leny = length(y);
-%     end
-%     i = i+1;
-%     lenx = length(x);
-% end
-% 
-% plot(y,z,'.');
-
-% hold on 
-% for k = 1 : length(x)
-%     temp_z = z(k);
-%     while (temp_z<=15)
-%        scatter3(x(k),y(k),temp_z+1,'.');
-%        temp_z = temp_z + 1;
-%     end
-% end 
-% hold off
-
-% for i = 1 : (length(x)-1)
-%     disp(i);
-%     temp_z = z(i);
-%     for j = 1 : (length(x)-1)
-%         
-%         if(x(i)==x(j) && y(i)==y(j))
-%             if(z(j)>temp_z)
-%                 z(i) = z(j);
-%             end
-%             x(j)=[0];
-%             y(j)=[0];
-%             z(j)=[0];
-%         end
-%     end
-% end
-
-
-%plot3(avgx,avgy,avgz,'*','color',[1 0 0]);
-
-% for i = 1 : length(x)
-%     newz = z(i);
-%     for j = newz : 0.009
-%         scatter3(x(i),y(i),j,'.');
-%     end
-% end
-
-% x = int16(x*200+100);
-% y = int16(y*200+70);
-% z = int16(z*800+80);
-% 
-% vol = zeros(140 ,160 ,110);
-% for i = 1 : length(x)
-%     if(x(i)<140 && y(i)<160 && z(i)<110)
-%         vol(x(i), y(i), z(i)) = 1;
-%     end
-% end
