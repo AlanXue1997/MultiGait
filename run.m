@@ -8,7 +8,8 @@ S = [140 90];
 
 data = zeros(1,n);
 for i=1:n
-    g = imread(sprintf('..\\silhouettes\\%s\\00_%d\\%s-00_%d-0%02d.png', name, number, name, number, i));
+    g = imread(sprintf('.\\CASIA_data\\DatasetA\\silhouettes\\%s\\00_%d\\%s-00_%d-0%02d.png', name, number, name, number, i));
+    %.\DGD_database\SAIVT-DGD-depthraw-0009\
     data(i) = size(getArea(g, [0 0], false), 2);
 end
 
@@ -19,9 +20,9 @@ figure(2);
 clf;
 hold on
 plot(data);
-A=polyfit(1:n,data,20);
-z=polyval(A,1:n);
-plot(1:n,z)
+A=polyfit(1:n,data,15);
+z=polyval(A,1:0.1:n);
+plot(1:0.1:n,z)
 hold off
 
 data = z;
@@ -47,7 +48,7 @@ disp([left right]);
 
 ave = zeros(S);
 for i=left:right
-    g = imread(sprintf('..\\silhouettes\\%s\\00_%d\\%s-00_%d-0%02d.png', name, number, name, number, i));
+    g = imread(sprintf('.\\CASIA_data\\DatasetA\\silhouettes\\%s\\00_%d\\%s-00_%d-0%02d.png', name, number, name, number, i));
     ave = ave + double(getArea(g, S, true));
 end
 
