@@ -1,4 +1,4 @@
-clear;clc;clf;
+function [X , x , y , z] = process1(image)
 
 ZoneSize = [70,190];
 ImageSize = [350,800];
@@ -8,7 +8,9 @@ if ~((ZoneSize(1)/ImageSize(1))==(ZoneSize(2)/ImageSize(2)))
     warning('Aspect ratio of ZoneSize[%d,%d] and ImageSize[%d,%d] is not consistent, part of Image may be wasted!', ZoneSize,ImageSize);
 end
 
-image = imread('.\DGD_database\SAIVT-DGD-depthraw-0009\DGD\depth_raw\sub0009\nw01\0029.png');
+%image = imread('.\DGD_database\SAIVT-DGD-depthraw-0009\DGD\depth_raw\sub0001\nw01\0045.png');
+
+p=depth2cloud4dgd( image );
 
 p=depth2cloud4dgd( image );
 
@@ -22,14 +24,16 @@ r = b-a;
 
 %segment
 q0 = ( (x-a(1))*r(2)-(z-a(2))*r(1) )<0;
-q = find((x>-100)+q0+(y>-50)+(y<80)+(z<700)+(z>100)==6);
+q = find((x>-100)+q0+(y>-50)+(y<80)+(z<680)+(z>100)==6);
 
 %convert to vector
 x = x(q);
 y = y(q);
 z = z(q);
 
-
+% figure(3);
+% scatter3(x,y,z,'.');
+% axis equal
 
 %translation
 avgx = mean(x);
@@ -39,17 +43,17 @@ x = (x - avgx);
 y = (y - avgy);
 z = (z - avgz);
 
-figure(3);
-scatter3(x,y,z,'.');
-axis equal
+% figure(3);
+% scatter3(x,y,z,'.');
+% axis equal
 
 height = ZoneSize(2);
 width = ZoneSize(1);%It may be width rather than weight, which is an unit to measure mass
 
-i = 1;
-j = 1;
-lenx = length(x);
-leny = length(y);
+% i = 1;
+% j = 1;
+% lenx = length(x);
+% leny = length(y);
 
 %delete exceeding points
 p = find((abs(x)<height/2) .* (abs(z)<width/2)==1);
@@ -75,21 +79,19 @@ X = zeros(ImageSize(2),ImageSize(1));
 for i=1:length(x)
     X(x(i),z(i))=1;
 end
-figure(1);
-subplot(2,2,1);
-imshow(X);
+% figure(1);
+% subplot(1,2,1);
+% imshow(X);
 
 %Fill back
-%for i=2:ImageSize(1)
-%    X(:,i) = X(:,i-1)+X(:,i)>0;
-%end
+% for i=2:ImageSize(1)
+%     X(:,i) = X(:,i-1)+X(:,i)>0;
+% end
 X = X*triu(ones(ImageSize(1)))>0;
 X=1-X;
-subplot(2,2,2);
-imshow(X);
-
+% subplot(1,2,2);
+% imshow(X);
 w=fspecial('gaussian',[15 5],3);
+% w=fspecial('disk',10);
 X=imfilter(X,w);
-
-subplot(2,2,3);
-imshow(X>0.9);
+X = X>0.9;
