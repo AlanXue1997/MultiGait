@@ -69,7 +69,7 @@ else
     area = G(centre(1)-halfsize(1):centre(1)+halfsize(1)-1, centre(2)-halfsize(2):centre(2)+halfsize(2)-1);
     area = area*triu(ones(S(2)))>0;
     area = 1-area;
-    %w=fspecial('gaussian',[25 5],3);
+    %w=fspecial('gaussian',[15 5],3);
     % w=fspecial('disk',10);
     %area=imfilter(area,w);
     %area = area>0.9;

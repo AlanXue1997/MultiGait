@@ -24,7 +24,7 @@ end
 % figure(1);
 % imshow(getArea(g, [0 0], false));
 
-figure(2);
+figure(1);
 clf;
 hold on
 plot(data);
@@ -55,8 +55,8 @@ data = z;
 [pks,locs] = findpeaks(z);
 q = find((locs(1,:)>=10) + (locs(1,:)<=65) == 2);
 locs = locs(q);
-left = locs(2);
-right = locs(4);
+left = locs(1);
+right = locs(3);
 disp([left right]);
 
 ave = zeros(S);

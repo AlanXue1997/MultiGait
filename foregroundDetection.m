@@ -1,15 +1,18 @@
 clear,clc;
 
-S = [170 90];
+S = [400 200];
 CASIA_GEI = zeros(S);
 fillback_CASIA_GEI = zeros(S);
 total_num = 75;
 seg_rank = 43;
 kind = 'nm';
 %path = '.\\CASIA_data\\DatasetA\\gaitdb\\fyc\\00_1\\fyc-00_1-0%02d.png';
-for  i=1:35
-    for j=1:6
-        vpath = sprintf('.\\CASIA_data\\Dataset__00\\0%02d-nm-0%d-090.avi',i,j);
+
+
+for  i=1:1
+    for j=1:1
+        %vpath = sprintf('.\\CASIA_data\\Dataset__00\\0%02d-nm-0%d-090.avi',i,j);
+        vpath = sprintf('.\\CASIA_data\\12£®ø…”√£©.mp4');
         % 
         % bg = uint16(imread('.\CASIA_data\fyc\00_1\fyc-00_1-001.png'));
         % for i=2:total_num
@@ -37,7 +40,7 @@ for  i=1:35
         %     step(foregroundDetector, frame);
         % end
 
-        %videoPlayer = vision.VideoPlayer();
+        videoPlayer = vision.VideoPlayer();
         k = 1;
         while ~isDone(videoSource)
             frame  = videoSource();
@@ -48,16 +51,17 @@ for  i=1:35
                imgframe(:,:,k) = filteredForeground;
                k = k+1;
             end
-            %videoPlayer(1-filteredForeground); 
-            %pause(0.03);
+            videoPlayer(1-filteredForeground); 
+            pause(0.03);
              
         end
         [fillback_CASIA_GEI] = run(imgframe,S);
         % figure(3);
         % imshow(CASIA_GEI);
-        %figure(4);
-        %imshow(fillback_CASIA_GEI);
-        imwrite(fillback_CASIA_GEI,sprintf('.\\GEI_FromCASIA\\p (%d)\\%s-GEI-%d.jpg',i,kind,j),'jpg');
+        figure(2);
+        imshow(fillback_CASIA_GEI);
+        
+        %imwrite(fillback_CASIA_GEI,sprintf('.\\GEI_FromCASIA\\p (%d)\\%s-GEI-%d.jpg',i,kind,j),'jpg');
     end
     
 end
