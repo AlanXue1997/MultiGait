@@ -1,7 +1,8 @@
 clear,clc;
 
-S = [400 200];
-CASIA_GEI = zeros(S);
+S = [800 400];
+aframeGEI = zeros(S);
+bframeGEI = zeros(S);
 fillback_CASIA_GEI = zeros(S);
 total_num = 75;
 seg_rank = 43;
@@ -9,8 +10,8 @@ kind = 'nm';
 %path = '.\\CASIA_data\\DatasetA\\gaitdb\\fyc\\00_1\\fyc-00_1-0%02d.png';
 
 
-for  i=1:1
-    for j=1:1
+%for  i=1:1
+%    for j=1:1
         %vpath = sprintf('.\\CASIA_data\\Dataset__00\\0%02d-nm-0%d-090.avi',i,j);
         vpath = sprintf('.\\CASIA_data\\12（可用）.mp4');
         % 
@@ -41,30 +42,99 @@ for  i=1:1
         % end
 
         videoPlayer = vision.VideoPlayer();
+        bofeng = zeros(1,3);
+        n = 4;%缓存帧数
+        cache = zeros(480,640,n); %缓存矩阵
+        flag = 1; %波峰
+        temp = 1;%循环往缓存矩阵里面存入帧
+        last = 0;%记录上次找到的波峰的个数
+        block = 1;
+        disframe = 50;%控制在figure里显示多少帧的曲线
+        data = zeros(1,disframe);
         k = 1;
+        %cam=webcam;
         while ~isDone(videoSource)
+        %while true
             frame  = videoSource();
+            %frame=snapshot(cam);
             foreground = step(foregroundDetector, frame);% origin
             se = strel('square', 3);
             filteredForeground = imopen(foreground, se);%filtered
-            if sum(filteredForeground(:)) ~= 0
-               imgframe(:,:,k) = filteredForeground;
+%            if sum(filteredForeground(:)) ~= 0
+                if k>disframe
+                    data(1,1:disframe-1) = data(1,2:disframe);
+                    data(disframe) = size(getArea(filteredForeground, [0 0], false), 2);
+                    subplot(1,2,1);
+                    plot(data(1,1:disframe));
+                    axis([0,disframe,0,300]);
+                else
+                    data(k) = size(getArea(filteredForeground, [0 0], false), 2);
+                    subplot(1,2,1);
+                    plot(data(1,1:k));
+                    axis([0,disframe,0,300]);
+                end
+                
+                temp = mod(k,n);
+                if temp == 0
+                    temp=n;
+                end
+                cache(:,:,temp) = filteredForeground;
+                if k>=3
+                    [pks,locs] = findpeaks(data,'minpeakdistance',10);
+                    len = size(locs,2);
+                    if len~=0
+                        differ = k-locs(1,len); %波峰之后过了多少帧
+                        m = mod(k-differ,n);
+                        if m == 0
+                            m=n;
+                        end
+                        if len>last
+                            bofeng(1,mod(flag,3)+1) = locs(1,len);
+                            flag=flag+1;
+                            sortbofeng = sort(bofeng,2);
+                            disp(sortbofeng);
+                            if len>=2
+                                bframeGEI = bframeGEI./(locs(1,len)-locs(1,len-1));
+                                subplot(1,2,2);
+                                imshow((aframeGEI+bframeGEI)/2);
+                                aframeGEI = bframeGEI;
+                                bframeGEI = zeros(S);
+                            end
+                        end
+                        area=getArea(cache(:,:,m), [0 0], false);
+                        area=double(imresize(area,S));
+                        area = area*triu(ones(S(2)))>0;
+                        area = 1-area;
+                        bframeGEI = bframeGEI + area;
+                    end
+                    last = len;
+                end
                k = k+1;
-            end
+%            end
             videoPlayer(1-filteredForeground); 
             pause(0.03);
-             
         end
-        [fillback_CASIA_GEI] = run(imgframe,S);
-        % figure(3);
-        % imshow(CASIA_GEI);
-        figure(2);
-        imshow(fillback_CASIA_GEI);
+
+%        ave = zeros(S);
+        
+%         for i=left:right
+%         %     g = imread(sprintf('.\\CASIA_data\\DatasetA\\silhouettes\\%s\\00_%d\\%s-00_%d-0%02d.png', name, number, name, number, i));
+%             g = imgframe(:,:,i);
+%             %imshow(g);
+%             ave = ave + double(getArea(g, S, true));
+%         end
+%         ave = ave./(right-left+1);% ./ 256;
+%         
+%         [fillback_CASIA_GEI] = run(imgframe,S);
+%         % figure(3);
+%         % imshow(CASIA_GEI);
+%         figure(2);
+%         imshow(fillback_CASIA_GEI);
         
         %imwrite(fillback_CASIA_GEI,sprintf('.\\GEI_FromCASIA\\p (%d)\\%s-GEI-%d.jpg',i,kind,j),'jpg');
-    end
+%    end
     
-end
+%end
 
 
 % frame = videoSource();%imread(sprintf('.\\CASIA_data\\DatasetA\\gaitdb\\fyc\\00_1\\fyc-00_1-0%02d.png',seg_rank)); % read the next video frame
