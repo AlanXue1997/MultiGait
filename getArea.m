@@ -63,7 +63,7 @@ else
         
         left = centre(2);%(width / 2);
         right = centre(2);
-        while (sum(G(centre(1):height,left))>epsilon)+(sum(G(centre(1):height,right))>epsilon)>0
+        while (sum(G(:,left))>epsilon)+(sum(G(:,right))>epsilon)>0
             left = left - 1;
             right = right + 1;
             if (left == 1)+(right == width)>0
@@ -75,6 +75,30 @@ end
 
 if sum(S==[0 0])==2
     area = G(down:up, left:right);
+elseif sum(S~=[0 0]) && weight == false
+    area1 = G(down:up, left:right);
+    h = up-down;
+    if h==0
+        h=1;
+    end
+    %由于长宽的比因为resize可能会变得特别大，所以对长宽比进行限制
+    hre = size(area1,1)*S(1)/h;
+    wre = size(area1,2)*S(1)/h;
+    if (hre/wre)>1/2 && (hre/wre)<30
+        area1=double(imresize(area1,[hre wre]));
+        area1=area1(1:S(1),:);
+        areawidth = size(area1,2);
+        area = zeros(S);
+        if areawidth < S(2)
+            area(:,S(2)/2-areawidth/2:S(2)/2+areawidth/2-1) = area1;
+        elseif areawidth == S(2)
+            area = area1(:,1:areawidth/2+S(2)/2);
+        else
+            area = area1(:,areawidth/2-S(2)/2:areawidth/2+S(2)/2-1);
+        end    
+    else
+        area = zeros(S);
+    end
 else
     halfsize = S./2;
     area = G(centre(1)-halfsize(1):centre(1)+halfsize(1)-1, centre(2)-halfsize(2):centre(2)+halfsize(2)-1);

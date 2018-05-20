@@ -1,6 +1,6 @@
 clear,clc;
 
-S = [800 400];
+S = [100 50];
 aframeGEI = zeros(S);
 bframeGEI = zeros(S);
 fillback_CASIA_GEI = zeros(S);
@@ -13,7 +13,7 @@ kind = 'nm';
 %for  i=1:1
 %    for j=1:1
         %vpath = sprintf('.\\CASIA_data\\Dataset__00\\0%02d-nm-0%d-090.avi',i,j);
-        vpath = sprintf('.\\CASIA_data\\12（可用）.mp4');
+        %vpath = sprintf('.\\CASIA_data\\13.mp4');
         % 
         % bg = uint16(imread('.\CASIA_data\fyc\00_1\fyc-00_1-001.png'));
         % for i=2:total_num
@@ -31,10 +31,10 @@ kind = 'nm';
         % imshow(fg);
 
 
-        foregroundDetector = vision.ForegroundDetector('NumTrainingFrames', 5);
+        foregroundDetector = vision.ForegroundDetector('NumTrainingFrames', 10);
 
-        videoSource = vision.VideoFileReader(vpath,...
-            'ImageColorSpace','Intensity','VideoOutputDataType','uint8');
+%         videoSource = vision.VideoFileReader(vpath,...
+%             'ImageColorSpace','Intensity','VideoOutputDataType','uint8');
 
         % for i = 1:total_num
         %     frame = videoSource();%imread(sprintf('.\\CASIA_data\\DatasetA\\gaitdb\\fyc\\00_1\\fyc-00_1-0%02d.png',i)); % read the next video frame
@@ -50,13 +50,16 @@ kind = 'nm';
         last = 0;%记录上次找到的波峰的个数
         block = 1;
         disframe = 50;%控制在figure里显示多少帧的曲线
+        distance=0;
         data = zeros(1,disframe);
         k = 1;
-        %cam=webcam;
-        while ~isDone(videoSource)
-        %while true
-            frame  = videoSource();
-            %frame=snapshot(cam);
+        cam=webcam(1); %选择第二号视频设备
+        cam.Resolution = '640x480';  %设置视频设备的分辨率是640*480
+        imgGEInum=0;  %记录当前获得的GEI图片序号
+        %while ~isDone(videoSource)
+        while true
+            %frame  = videoSource();
+            frame=snapshot(cam);
             foreground = step(foregroundDetector, frame);% origin
             se = strel('square', 3);
             filteredForeground = imopen(foreground, se);%filtered
@@ -92,19 +95,26 @@ kind = 'nm';
                             bofeng(1,mod(flag,3)+1) = locs(1,len);
                             flag=flag+1;
                             sortbofeng = sort(bofeng,2);
-                            disp(sortbofeng);
+                            %disp(sortbofeng);
                             if len>=2
-                                bframeGEI = bframeGEI./(locs(1,len)-locs(1,len-1));
+                                %bframeGEI = bframeGEI./(locs(1,len)-locs(1,len-1));
+                                %显示实时获取GEI，并存储到文件夹中
                                 subplot(1,2,2);
-                                imshow((aframeGEI+bframeGEI)/2);
+                                imshow((aframeGEI+bframeGEI)/distance);
+                                imgGEInum = imgGEInum+1;
+                                if imgGEInum>100
+                                    break;
+                                end
+                                imwrite((aframeGEI+bframeGEI)/distance,sprintf('.\\GEI2Dlive_data\\person1\\%d.jpg',imgGEInum),'jpg');
                                 aframeGEI = bframeGEI;
+                                distance=0;
                                 bframeGEI = zeros(S);
                             end
                         end
-                        area=getArea(cache(:,:,m), [0 0], false);
-                        area=double(imresize(area,S));
-                        area = area*triu(ones(S(2)))>0;
-                        area = 1-area;
+                        area=getArea(cache(:,:,m), S, false);
+%                         area = area*triu(ones(S(2)))>0;
+%                         area = 1-area;
+                        distance=distance+1;
                         bframeGEI = bframeGEI + area;
                     end
                     last = len;

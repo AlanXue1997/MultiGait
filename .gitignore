@@ -6,6 +6,7 @@ CASIA_data/*
 DGD_database/*
 GEI_FromCASIA/*
 GEI_FromDGD/*
+GEI2Dlive_data/*
 
 # temp script
 alan_try.m
