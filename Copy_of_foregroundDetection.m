@@ -3,6 +3,7 @@ clear,clc;
 S = [100 50];
 aframeGEI = zeros(S);
 bframeGEI = zeros(S);
+GEI = zeros(S);
 fillback_CASIA_GEI = zeros(S);
 total_num = 75;
 seg_rank = 43;
@@ -49,23 +50,18 @@ kind = 'nm';
         temp = 1;%循环往缓存矩阵里面存入帧
         last = 0;%记录上次找到的波峰的个数
         block = 1;
-        disframe = 100;%控制在figure里显示多少帧的曲线
+        disframe = 50;%控制在figure里显示多少帧的曲线
         adistance=0; %半个周期的帧数
         bdistance=0; %半个周期的帧数
+        distance=0;
         data = zeros(1,disframe);
         k = 1;
         %cam=webcam(1); %选择第几号视频设备
         %cam.Resolution = '640x480';  %设置视频设备的分辨率是640*480
         imgGEInum=0;  %记录当前获得的GEI图片序号
-        figure(1);
         while ~isDone(videoSource)
         %while true
             frame  = videoSource();
-            %展示彩色图片
-            subplot(1,3,2);
-            if mod(k,10)==0
-                imshow(frame);
-            end
             %frame=snapshot(cam);
             foreground = step(foregroundDetector, frame);% origin
             se = strel('square', 3);
@@ -74,12 +70,12 @@ kind = 'nm';
                 if k>disframe
                     data(1,1:disframe-1) = data(1,2:disframe);
                     data(disframe) = size(getArea(filteredForeground, [0 0], false), 2);
-                    subplot(1,3,1);
+                    subplot(1,2,1);
                     plot(data(1,1:disframe));
                     axis([0,disframe,0,300]);
                 else
                     data(k) = size(getArea(filteredForeground, [0 0], false), 2);
-                    subplot(1,3,1);
+                    subplot(1,2,1);
                     plot(data(1,1:k));
                     axis([0,disframe,0,300]);
                 end
@@ -100,14 +96,16 @@ kind = 'nm';
                             m=n;
                         end
                         if len>last
-                            bofeng(1,mod(flag,3)+1) = locs(1,len);
-                            flag=flag+1;
-                            sortbofeng = sort(bofeng,2);
+%                             bofeng(1,mod(flag,3)+1) = locs(1,len);
+%                             flag=flag+1;
+%                             sortbofeng = sort(bofeng,2);
+                            %disp(sortbofeng);
                             if len>=2
                                 %bframeGEI = bframeGEI./(locs(1,len)-locs(1,len-1));
                                 %显示实时获取GEI，并存储到文件夹中
-                                subplot(1,3,3);
-                                imshow((aframeGEI+bframeGEI)/(adistance+bdistance));
+                                subplot(1,2,2);
+                                GEI = (aframeGEI+bframeGEI)/(adistance+bdistance);
+                                imshow(GEI);
                                 if k<60
                                     title('没有匹配成功');
                                 else
@@ -117,10 +115,28 @@ kind = 'nm';
                                 if imgGEInum>100
                                     break;
                                 end
-                                %imwrite((aframeGEI+bframeGEI)/(adistance+bdistance),sprintf('.\\GEI2Dlive_data\\person1\\%d.jpg',imgGEInum),'jpg');
+                                
+                                %选取GEI的前20个数传给服务器
+%                                 x = [1:20];
+%                                 y = ones(20,1);
+%                                 GEImessage = GEI(x+(y-1)*size(GEI,1));
+%                                 URL = 'http://172.20.14.90:8000/control/doorquery/2/';
+%                                 if mod(k,10)
+%                                     str = urlread(URL,'Post',{'st1','true','st2','1 2 3 4 5 6 7 8 9 10'});
+%                                 else
+%                                     str = urlread(URL,'Post',{'st1','flase','st2','1 2 3 4 5 6 7 8 9 10'});
+%                                 end
+%                                 if str == 'true'
+%                                     disp('开门');
+%                                 else
+%                                     disp('关门');
+%                                 end
+
+                                %imwrite(GEI,sprintf('.\\GEI2Dlive_data\\person1\\%d.jpg',imgGEInum),'jpg');
                                 aframeGEI = bframeGEI;
                                 adistance = bdistance;
                                 bdistance = 0;
+                                distance=0;
                                 bframeGEI = zeros(S);
                             end
                         end
@@ -134,8 +150,8 @@ kind = 'nm';
                 end
                k = k+1;
 %            end
-            %videoPlayer(1-filteredForeground); 
-            pause(0.005);
+            videoPlayer(1-filteredForeground); 
+            pause(0.03);
         end
 
 %        ave = zeros(S);

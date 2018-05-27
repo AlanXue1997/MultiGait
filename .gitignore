@@ -7,6 +7,7 @@ DGD_database/*
 GEI_FromCASIA/*
 GEI_FromDGD/*
 GEI2Dlive_data/*
+newGEI_depth/*
 
 # temp script
 alan_try.m

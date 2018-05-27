@@ -27,7 +27,7 @@ if weight && sum(S~=[0 0]) == 2
     end
     centre(2) = k;
 else
-    epsilon = 10;
+    epsilon = 5;
     half = sum(sum(G))/2;
     eax = 0;
     centre = [0 0];
